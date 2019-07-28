@@ -1,0 +1,14 @@
+{
+  "commentNotation": "^\\/\\/",
+  "defaultGroup": "Components",
+  "groups": {
+    "Vendor": "(react|mobx|vendor)",
+    "Platform": "platform",
+    "Toolkit": "toolkit",
+    "Models/Constants/Types": "(models|constants|types)",
+    "Stores": "stores"
+  },
+  "importKeywords": "(import|require)",
+  "memberBounds": "(\\{|\\})",
+  "labelGroups": false
+}
