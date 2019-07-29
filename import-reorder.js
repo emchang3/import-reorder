@@ -4,16 +4,16 @@ const {
   commentNotation,
   defaultGroup,
   groups,
-  importKeywords,
+  importPattern,
   labelGroups,
   memberBounds
 } = require('./config.json');
 
 const cwd = process.cwd();
 
-const commentPattern = new RegExp(commentNotation);
-const importPattern = new RegExp(importKeywords);
-const memberPattern = new RegExp(memberBounds);
+const commentPatternRE = new RegExp(commentNotation);
+const importPatternRE = new RegExp(importPattern);
+const memberPatternRE = new RegExp(memberBounds);
 
 process.stdin.on('data', function(changeList) {
   const filePaths = changeList.toString();
@@ -68,13 +68,14 @@ function processFile(filePath) {
 function processChunk(chunk, cb) {
   const part = chunk.toString();
 
-  if (part.match(importPattern) === null) {
+  if (part.match(importPatternRE) === null) {
     cb(part);
 
     return;
   }
   
   const withAlphabetizedMembers = alphabetizeMembers(part);
+  // console.log('--- withAlphabetizedMembers:', withAlphabetizedMembers);
   const withAlphabetizedImports = alphabetizeImports(withAlphabetizedMembers);
 
   cb(withAlphabetizedImports);
@@ -87,19 +88,38 @@ function processChunk(chunk, cb) {
  * @returns {string} Processed chunk.
  */
 function alphabetizeMembers(chunk) {
-  return chunk.split('\n').map((line) => {
-    if (line.match(importPattern) === null || line.match(memberPattern) === null) {
-      return line;
+  const { imports, code } = getSections(chunk);
+
+  const sortedMembers = imports.map((statement) => {
+    if (statement.match(commentPatternRE)) {
+      return statement;
+    }
+
+    const singleLineStatement = statement.replace(/\n/g, '');
+    // console.log('--- singleLineStatement:', singleLineStatement);
+    
+    if (
+      singleLineStatement.match(importPatternRE) === null ||
+      singleLineStatement.match(memberPatternRE) === null
+    ) {
+      return singleLineStatement;
     }
     
-    const breakOnOpeningBrace = line.split('{');
+    const breakOnOpeningBrace = singleLineStatement.split('{');
     const prefix = breakOnOpeningBrace[0];
     const breakOnClosingBrace = breakOnOpeningBrace[1].split('}');
     const postfix = breakOnClosingBrace[1];
-    const members = breakOnClosingBrace[0].trim().split(', ').sort().join(', ');
+    const members = breakOnClosingBrace[0]
+      .trim()
+      .split(',')
+      .map(member => member.trim())
+      .sort()
+      .join(', ');
 
     return `${prefix}{ ${members} }${postfix}`;
   }).join('\n');
+
+  return sortedMembers + code.join('\n');
 }
 
 /**
@@ -138,6 +158,19 @@ function alphabetizeImports(chunk) {
   return processedChunk;
 }
 
+
+function getSections(chunk) {
+  const statements = chunk.split(';\n');
+  const lastImportIndex = findLastImportIndex(statements);
+
+  return {
+    imports: statements.slice(0, lastImportIndex + 1).map(statement => statement + ';'),
+    code: statements
+      .slice(lastImportIndex + 1)
+      .map(statement => statement !== '' ? statement + ';' : statement)
+  };
+}
+
 /**
  * findLastImportIndex finds the index of the line of the last import statement.
  * 
@@ -148,7 +181,7 @@ function findLastImportIndex(lines) {
   let last = 0;
 
   lines.forEach((line, idx) => {
-    if (line.match(importPattern) !== null) {
+    if (line.match(importPatternRE) !== null) {
       last = idx;
     }
   });
@@ -171,13 +204,13 @@ function groupImportsAndStatements(imports) {
   while (imports.length > 0) {
     const line = imports[0];
 
-    if (line.match(commentPattern) !== null) {
+    if (line.match(commentPatternRE) !== null) {
       imports.shift();
 
       continue;
     }
 
-    if (line.match(importPattern) !== null) {
+    if (line.match(importPatternRE) !== null) {
       let matched = false;
 
       for (let i = 0; i < groupKeys.length; i++) {

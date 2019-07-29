@@ -1,8 +1,14 @@
+/* tslint:disable-some-rule */
+
 import * as React from 'react';
 import { sol } from 'some-vendor-library';
 import { OtherDep, ControllerModule } from 'platform-core';
 import { LibB, LibC, LibA } from 'platform-libs';
-import { ToolkitSecondaryButton, ToolkitPrimaryButton } from 'toolkit-button';
+import {
+  ToolkitSecondaryButton,
+  ToolkitPrimaryButton,
+  ToolkitButtonSize
+} from 'toolkit-button';
 import { ToolkitCardContent, ToolkitCard } from 'toolkit-card';
 // some
 // comments

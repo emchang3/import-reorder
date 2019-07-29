@@ -1,5 +1,5 @@
 {
-  "commentNotation": "^\\/\\/",
+  "commentNotation": "(^\\/\\/|^\\/\\*)",
   "defaultGroup": "Components",
   "groups": {
     "Vendor": "(react|mobx|vendor)",
@@ -8,7 +8,7 @@
     "Models/Constants/Types": "(models|constants|types)",
     "Stores": "stores"
   },
-  "importKeywords": "(import|require)",
+  "importPattern": "(import.*from|const.*require)",
   "memberBounds": "(\\{|\\})",
   "labelGroups": false
 }
