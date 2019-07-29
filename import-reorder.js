@@ -15,7 +15,7 @@ const commentPatternRE = new RegExp(commentNotation);
 const importPatternRE = new RegExp(importPattern);
 const memberPatternRE = new RegExp(memberBounds);
 
-process.stdin.on('data', function(changeList) {
+process.stdin.on('data', function (changeList) {
   const filePaths = changeList.toString();
 
   filePaths.split('\n').forEach((filePath) => {
@@ -44,16 +44,16 @@ function processFile(filePath) {
   const rs = fs.createReadStream(filePath);
 
   rs.on('error', error => console.log(error));
-  
+
   rs.on('data', chunk => processChunk(chunk, part => parts.push(part)));
-  
+
   rs.on('end', () => {
     const ws = fs.createWriteStream(filePath);
 
     ws.on('error', error => console.log(error));
-  
+
     ws.on('finish', () => ws.end());
-  
+
     ws.write(parts.join(''));
   });
 }
@@ -73,7 +73,7 @@ function processChunk(chunk, cb) {
 
     return;
   }
-  
+
   const withAlphabetizedMembers = alphabetizeMembers(part);
   // console.log('--- withAlphabetizedMembers:', withAlphabetizedMembers);
   const withAlphabetizedImports = alphabetizeImports(withAlphabetizedMembers);
@@ -96,21 +96,19 @@ function alphabetizeMembers(chunk) {
     }
 
     const singleLineStatement = statement.replace(/\n/g, '');
-    // console.log('--- singleLineStatement:', singleLineStatement);
-    
+
     if (
       singleLineStatement.match(importPatternRE) === null ||
       singleLineStatement.match(memberPatternRE) === null
     ) {
       return singleLineStatement;
     }
-    
+
     const breakOnOpeningBrace = singleLineStatement.split('{');
     const prefix = breakOnOpeningBrace[0];
     const breakOnClosingBrace = breakOnOpeningBrace[1].split('}');
     const postfix = breakOnClosingBrace[1];
-    const members = breakOnClosingBrace[0]
-      .trim()
+    const members = breakOnClosingBrace[0].trim()
       .split(',')
       .map(member => member.trim())
       .sort()
@@ -146,7 +144,7 @@ function alphabetizeImports(chunk) {
       sortedImports.push(`// ${groupedKey}`);
     }
 
-    sortedImports = [ ...sortedImports, ...groupedImports[groupedKey].sort(), '' ];
+    sortedImports = [...sortedImports, ...groupedImports[groupedKey].sort(), ''];
   });
 
   if (statements.length > 0) {
@@ -165,8 +163,7 @@ function getSections(chunk) {
 
   return {
     imports: statements.slice(0, lastImportIndex + 1).map(statement => statement + ';'),
-    code: statements
-      .slice(lastImportIndex + 1)
+    code: statements.slice(lastImportIndex + 1)
       .map(statement => statement !== '' ? statement + ';' : statement)
   };
 }
@@ -219,22 +216,22 @@ function groupImportsAndStatements(imports) {
 
         if (line.match(groupKeyPattern) !== null) {
           if (!groupedImports[groupKey]) {
-            groupedImports[groupKey] = [ line ];
+            groupedImports[groupKey] = [line];
           } else {
-            groupedImports[groupKey] = [ ...groupedImports[groupKey], line ];
+            groupedImports[groupKey] = [...groupedImports[groupKey], line];
           }
 
           matched = true;
-    
+
           break;
         }
       }
-    
+
       if (!matched) {
         if (!groupedImports[defaultGroup]) {
-          groupedImports[defaultGroup] = [ line ];
+          groupedImports[defaultGroup] = [line];
         } else {
-          groupedImports[defaultGroup] = [ ...groupedImports[defaultGroup], line ];
+          groupedImports[defaultGroup] = [...groupedImports[defaultGroup], line];
         }
       }
 
