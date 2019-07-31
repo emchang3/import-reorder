@@ -1,6 +1,6 @@
 # import-reorder
 
-Re-orders imports in JavaScript and TypeScript files.
+Re-orders imports in JavaScript and TypeScript files. Requires use of semicolons.
 
 ## Usage (WIP)
 
@@ -10,3 +10,5 @@ With staged files:
 ```
 git diff --name-only --cached | node import-reorder.js
 ```
+
+The above can be added as a git hook with tools like Husky.

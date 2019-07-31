@@ -155,7 +155,12 @@ function alphabetizeImports(chunk) {
   return processedChunk;
 }
 
-
+/**
+ * getSections returns sections of a file split into imports and code.
+ * 
+ * @param {string} chunk Chunk of a file.
+ * @returns { imports: string[], code: string } Imports as a list split by `;\n`, code as a string.
+ */
 function getSections(chunk) {
   const statements = chunk.split(';\n');
   const lastImportIndex = findLastImportIndex(statements);
@@ -169,7 +174,7 @@ function getSections(chunk) {
 /**
  * findLastImportIndex finds the index of the line of the last import statement.
  * 
- * @param {string[]} lines Chunk of a file split into lines by `\n`.
+ * @param {string[]} lines Chunk of a file split into lines by `;\n`.
  * @returns {number} Index of the line of the last import statement.
  */
 function findLastImportIndex(lines) {
