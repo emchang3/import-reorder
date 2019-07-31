@@ -1,17 +1,17 @@
 const fs = require('fs');
 
+const cwd = process.cwd();
+
 const {
-  commentNotation,
+  commentBegin,
   defaultGroup,
   groups,
   importPattern,
   labelGroups,
   memberBounds
-} = require('./config.json');
+} = require(`${cwd}/config.json`);
 
-const cwd = process.cwd();
-
-const commentPatternRE = new RegExp(commentNotation);
+const commentPatternRE = new RegExp(commentBegin);
 const importPatternRE = new RegExp(importPattern);
 const memberPatternRE = new RegExp(memberBounds);
 
@@ -75,7 +75,6 @@ function processChunk(chunk, cb) {
   }
 
   const withAlphabetizedMembers = alphabetizeMembers(part);
-  // console.log('--- withAlphabetizedMembers:', withAlphabetizedMembers);
   const withAlphabetizedImports = alphabetizeImports(withAlphabetizedMembers);
 
   cb(withAlphabetizedImports);
@@ -101,10 +100,10 @@ function alphabetizeMembers(chunk) {
       singleLineStatement.match(importPatternRE) === null ||
       singleLineStatement.match(memberPatternRE) === null
     ) {
-      return singleLineStatement;
+      return statement;
     }
 
-    const breakOnOpeningBrace = singleLineStatement.split('{');
+    const breakOnOpeningBrace = statement.split('{');
     const prefix = breakOnOpeningBrace[0];
     const breakOnClosingBrace = breakOnOpeningBrace[1].split('}');
     const postfix = breakOnClosingBrace[1];
@@ -115,7 +114,7 @@ function alphabetizeMembers(chunk) {
       .join(', ');
 
     return `${prefix}{ ${members} }${postfix}`;
-  }).join('\n');
+  }).join('\n').trim();
 
   return sortedMembers + code.join('\n');
 }
@@ -127,13 +126,8 @@ function alphabetizeMembers(chunk) {
  * @returns {string} Processed chunk.
  */
 function alphabetizeImports(chunk) {
-  const lines = chunk.split('\n');
-
-  const last = findLastImportIndex(lines);
-
-  const code = lines.slice(last + 1);
-
-  const { groupedImports, statements } = groupImportsAndStatements(lines.slice(0, last + 1));
+  const { imports, code } = getSections(chunk);
+  const { groupedImports, statements } = groupImportsAndStatements(imports);
 
   const groupedKeys = Object.keys(groupedImports);
 
@@ -147,11 +141,11 @@ function alphabetizeImports(chunk) {
     sortedImports = [...sortedImports, ...groupedImports[groupedKey].sort(), ''];
   });
 
-  if (statements.length > 0) {
-    statements.unshift('');
-  }
+  const joinedImports = sortedImports.join('\n').trim();
+  const joinedStatements = statements.length > 0 ? `\n\n${statements.join('\n')}` : '';
+  const joinedCode = code.length > 0 ? `\n\n${code.join('\n')}` : '';
 
-  const processedChunk = sortedImports.join('\n') + statements.join('\n') + code.join('\n');
+  const processedChunk = `${joinedImports}${joinedStatements}${joinedCode}`;
 
   return processedChunk;
 }
@@ -162,7 +156,7 @@ function getSections(chunk) {
   const lastImportIndex = findLastImportIndex(statements);
 
   return {
-    imports: statements.slice(0, lastImportIndex + 1).map(statement => statement + ';'),
+    imports: statements.slice(0, lastImportIndex + 1).map(statement => statement.trim() + ';'),
     code: statements.slice(lastImportIndex + 1)
       .map(statement => statement !== '' ? statement + ';' : statement)
   };
@@ -200,12 +194,6 @@ function groupImportsAndStatements(imports) {
 
   while (imports.length > 0) {
     const line = imports[0];
-
-    if (line.match(commentPatternRE) !== null) {
-      imports.shift();
-
-      continue;
-    }
 
     if (line.match(importPatternRE) !== null) {
       let matched = false;

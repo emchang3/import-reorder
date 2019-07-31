@@ -3,6 +3,11 @@
 import * as React from 'react';
 import { sol } from 'some-vendor-library';
 import { OtherDep, ControllerModule } from 'platform-core';
+/**
+ * Multi-line
+ * comment
+ * in the middle
+ */
 import { LibB, LibC, LibA } from 'platform-libs';
 import {
   ToolkitSecondaryButton,

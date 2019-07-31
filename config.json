@@ -1,5 +1,5 @@
 {
-  "commentNotation": "(^\\/\\/|^\\/\\*)",
+  "commentBegin": "(^\\/\\/|^\\/\\*)",
   "defaultGroup": "Components",
   "groups": {
     "Vendor": "(react|mobx|vendor)",
