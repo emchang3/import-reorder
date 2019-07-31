@@ -5,6 +5,7 @@ const cwd = process.cwd();
 const {
   commentBegin,
   defaultGroup,
+  fileTypes,
   groups,
   importPattern,
   labelGroups,
@@ -19,6 +20,10 @@ process.stdin.on('data', function (changeList) {
   const filePaths = changeList.toString();
 
   filePaths.split('\n').forEach((filePath) => {
+    if (filePath.match(fileTypes) === null) {
+      return;
+    }
+
     const path = `${cwd}/${filePath}`;
 
     fs.stat(path, (error, stats) => {
@@ -116,7 +121,7 @@ function alphabetizeMembers(chunk) {
     return `${prefix}{ ${members} }${postfix}`;
   }).join('\n').trim();
 
-  return sortedMembers + code.join('\n');
+  return sortedMembers + code;
 }
 
 /**
@@ -143,7 +148,7 @@ function alphabetizeImports(chunk) {
 
   const joinedImports = sortedImports.join('\n').trim();
   const joinedStatements = statements.length > 0 ? `\n\n${statements.join('\n')}` : '';
-  const joinedCode = code.length > 0 ? `\n\n${code.join('\n')}` : '';
+  const joinedCode = code.length > 0 ? `\n\n${code}` : '';
 
   const processedChunk = `${joinedImports}${joinedStatements}${joinedCode}`;
 
@@ -157,8 +162,7 @@ function getSections(chunk) {
 
   return {
     imports: statements.slice(0, lastImportIndex + 1).map(statement => statement.trim() + ';'),
-    code: statements.slice(lastImportIndex + 1)
-      .map(statement => statement !== '' ? statement + ';' : statement)
+    code: statements.slice(lastImportIndex + 1).join(';\n')
   };
 }
 

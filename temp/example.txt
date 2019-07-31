@@ -1,0 +1,6 @@
+/* tslint:disable-some-rule */
+
+import * as React from 'react';
+import { sol } from 'some-vendor-library';
+// File should remain untouched
+import { OtherDep, ControllerModule } from 'platform-core';

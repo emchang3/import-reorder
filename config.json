@@ -1,6 +1,7 @@
 {
   "commentBegin": "(^\\/\\/|^\\/\\*)",
   "defaultGroup": "Components",
+  "fileTypes": "(\\.js$|\\.jsx$|\\.ts$|\\.tsx$)",
   "groups": {
     "Vendor": "(react|mobx|vendor)",
     "Platform": "platform",
