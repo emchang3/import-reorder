@@ -17,7 +17,7 @@
     "type": "git",
     "url": "git+https://github.com/emchang3/import-reorder.git"
   },
-  "author": "Ezra Mintao Chang",
+  "author": "Ezra Mintao Chang <ezra.mintao.chang@gmail.com> (https://ezramchang.dev/)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/emchang3/import-reorder/issues"
