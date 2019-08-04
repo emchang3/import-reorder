@@ -13,7 +13,14 @@ const {
   membersBegin
 } = require(`${process.cwd()}/reorder.config.js`);
 
-process.stdin.on('data', function(changeList) {
+process.stdin.on('data', handleChangelist);
+
+/**
+ * handleChangelist handles a list of files, positioned relatively to the current working directory.
+ * 
+ * @param {string} changeList A list of files.
+ */
+function handleChangelist(changeList) {
   const filePaths = changeList.toString();
 
   filePaths.split('\n').forEach(filePath => {
@@ -33,7 +40,7 @@ process.stdin.on('data', function(changeList) {
       }
     });
   });
-});
+}
 
 /**
  * processFile alphabetizes imports and members of imports for a file.
@@ -125,7 +132,7 @@ function alphabetizeMembers(chunk) {
         .split(',')
         .map(member => member.trim())
         .sort()
-        .map(member => indent + member)
+        .map(member => tooLong ? indent + member : member)
         .join(tooLong ? ',\n' : ', ');
 
       return `${prefix}${members}${postfix}`;
@@ -140,7 +147,7 @@ function generateIndent() {
   const spaces = indentSpaces || 2;
 
   let indent = '';
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < spaces; i++) {
     indent += ' ';
   }
 
