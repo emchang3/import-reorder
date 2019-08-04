@@ -1,30 +1,27 @@
 const fs = require('fs');
 
-const cwd = process.cwd();
-
 const {
   commentBegin,
   defaultGroup,
   fileTypes,
   groups,
+  ignoreFiles,
   importPattern,
+  indentSpaces,
   labelGroups,
-  memberBounds
-} = require(`${cwd}/config.json`);
+  maxLineLength,
+  membersBegin
+} = require(`${process.cwd()}/reorder.config.js`);
 
-const commentPatternRE = new RegExp(commentBegin);
-const importPatternRE = new RegExp(importPattern);
-const memberPatternRE = new RegExp(memberBounds);
-
-process.stdin.on('data', function (changeList) {
+process.stdin.on('data', function(changeList) {
   const filePaths = changeList.toString();
 
-  filePaths.split('\n').forEach((filePath) => {
-    if (filePath.match(fileTypes) === null) {
+  filePaths.split('\n').forEach(filePath => {
+    if (filePath.match(fileTypes) === null || filePath.match(ignoreFiles) !== null) {
       return;
     }
 
-    const path = `${cwd}/${filePath}`;
+    const path = `${process.cwd()}/${filePath}`;
 
     fs.stat(path, (error, stats) => {
       if (error) {
@@ -40,7 +37,7 @@ process.stdin.on('data', function (changeList) {
 
 /**
  * processFile alphabetizes imports and members of imports for a file.
- * 
+ *
  * @param {string} filePath Path to file.
  */
 function processFile(filePath) {
@@ -65,7 +62,7 @@ function processFile(filePath) {
 
 /**
  * processChunk processes a chunk of a file during streaming.
- * 
+ *
  * @param {string} chunk Chunk of a file.
  * @param {(part: string) => void} cb Callback that pushes a part to the whole.
  * @returns {string} Processed chunk.
@@ -73,7 +70,7 @@ function processFile(filePath) {
 function processChunk(chunk, cb) {
   const part = chunk.toString();
 
-  if (part.match(importPatternRE) === null) {
+  if (part.match(importPattern) === null) {
     cb(part);
 
     return;
@@ -87,46 +84,72 @@ function processChunk(chunk, cb) {
 
 /**
  * alphabetizeMembers alphabetizes members of imports.
- * 
+ *
  * @param {string} chunk Chunk of a file.
  * @returns {string} Processed chunk.
  */
 function alphabetizeMembers(chunk) {
   const { imports, code } = getSections(chunk);
 
-  const sortedMembers = imports.map((statement) => {
-    if (statement.match(commentPatternRE)) {
-      return statement;
-    }
+  const sortedMembers = imports
+    .map(statement => {
+      if (statement.match(commentBegin)) {
+        return statement;
+      }
 
-    const singleLineStatement = statement.replace(/\n/g, '');
+      const singleLineStatement = statement.replace(/\n/g, '');
 
-    if (
-      singleLineStatement.match(importPatternRE) === null ||
-      singleLineStatement.match(memberPatternRE) === null
-    ) {
-      return statement;
-    }
+      if (
+        singleLineStatement.match(importPattern) === null ||
+        singleLineStatement.match(membersBegin) === null
+      ) {
+        return statement;
+      }
 
-    const breakOnOpeningBrace = statement.split('{');
-    const prefix = breakOnOpeningBrace[0];
-    const breakOnClosingBrace = breakOnOpeningBrace[1].split('}');
-    const postfix = breakOnClosingBrace[1];
-    const members = breakOnClosingBrace[0].trim()
-      .split(',')
-      .map(member => member.trim())
-      .sort()
-      .join(', ');
+      const tooLong =
+        maxLineLength && singleLineStatement.length > maxLineLength;
+      const indent = generateIndent();
 
-    return `${prefix}{ ${members} }${postfix}`;
-  }).join('\n').trim();
+      // Assumes import members are within first set of braces.
+      const breakOnOpeningBrace = statement.split('{');
+      let prefix = breakOnOpeningBrace[0];
+      prefix += tooLong ? '{\n' : '{ ';
+      const breakOnClosingBrace = breakOnOpeningBrace
+        .slice(1)
+        .join('{')
+        .split('}');
+      let postfix = breakOnClosingBrace.slice(1).join('}');
+      postfix = tooLong ? '\n}' + postfix : ' }' + postfix;
+      let members = breakOnClosingBrace[0]
+        .trim()
+        .split(',')
+        .map(member => member.trim())
+        .sort()
+        .map(member => indent + member)
+        .join(tooLong ? ',\n' : ', ');
+
+      return `${prefix}${members}${postfix}`;
+    })
+    .join('\n')
+    .trim();
 
   return sortedMembers + code;
 }
 
+function generateIndent() {
+  const spaces = indentSpaces || 2;
+
+  let indent = '';
+  for (let i = 0; i < 2; i++) {
+    indent += ' ';
+  }
+
+  return indent;
+}
+
 /**
  * alphabetizeImports alphabetizes import statements.
- * 
+ *
  * @param {string} chunk Chunk of a file.
  * @returns {string} Processed chunk.
  */
@@ -143,11 +166,16 @@ function alphabetizeImports(chunk) {
       sortedImports.push(`// ${groupedKey}`);
     }
 
-    sortedImports = [...sortedImports, ...groupedImports[groupedKey].sort(), ''];
+    sortedImports = [
+      ...sortedImports,
+      ...groupedImports[groupedKey].sort(),
+      ''
+    ];
   });
 
   const joinedImports = sortedImports.join('\n').trim();
-  const joinedStatements = statements.length > 0 ? `\n\n${statements.join('\n')}` : '';
+  const joinedStatements =
+    statements.length > 0 ? `\n\n${statements.join('\n')}` : '';
   const joinedCode = code.length > 0 ? `\n\n${code}` : '';
 
   const processedChunk = `${joinedImports}${joinedStatements}${joinedCode}`;
@@ -157,7 +185,7 @@ function alphabetizeImports(chunk) {
 
 /**
  * getSections returns sections of a file split into imports and code.
- * 
+ *
  * @param {string} chunk Chunk of a file.
  * @returns { imports: string[], code: string } Imports as a list split by `;\n`, code as a string.
  */
@@ -166,14 +194,16 @@ function getSections(chunk) {
   const lastImportIndex = findLastImportIndex(statements);
 
   return {
-    imports: statements.slice(0, lastImportIndex + 1).map(statement => statement.trim() + ';'),
+    imports: statements
+      .slice(0, lastImportIndex + 1)
+      .map(statement => statement.trim() + ';'),
     code: statements.slice(lastImportIndex + 1).join(';\n')
   };
 }
 
 /**
  * findLastImportIndex finds the index of the line of the last import statement.
- * 
+ *
  * @param {string[]} lines Chunk of a file split into lines by `;\n`.
  * @returns {number} Index of the line of the last import statement.
  */
@@ -181,7 +211,12 @@ function findLastImportIndex(lines) {
   let last = 0;
 
   lines.forEach((line, idx) => {
-    if (line.match(importPatternRE) !== null) {
+    if (
+      line
+        .split('\n')
+        .join('')
+        .match(importPattern) !== null
+    ) {
       last = idx;
     }
   });
@@ -191,7 +226,7 @@ function findLastImportIndex(lines) {
 
 /**
  * groupImportsAndStatements separates imports and statements into groups.
- * 
+ *
  * @param {string[]} imports Lines of code in the import area. Not all may be imports.
  * @returns {{ groupedImports: { [group: string]: string[] }, statements: string[] }} Grouped imports and statements.
  */
@@ -204,12 +239,17 @@ function groupImportsAndStatements(imports) {
   while (imports.length > 0) {
     const line = imports[0];
 
-    if (line.match(importPatternRE) !== null) {
+    if (
+      line
+        .split('\n')
+        .join('')
+        .match(importPattern) !== null
+    ) {
       let matched = false;
 
       for (let i = 0; i < groupKeys.length; i++) {
         const groupKey = groupKeys[i];
-        const groupKeyPattern = new RegExp(groups[groupKey]);
+        const groupKeyPattern = groups[groupKey];
 
         if (line.match(groupKeyPattern) !== null) {
           if (!groupedImports[groupKey]) {
@@ -228,7 +268,10 @@ function groupImportsAndStatements(imports) {
         if (!groupedImports[defaultGroup]) {
           groupedImports[defaultGroup] = [line];
         } else {
-          groupedImports[defaultGroup] = [...groupedImports[defaultGroup], line];
+          groupedImports[defaultGroup] = [
+            ...groupedImports[defaultGroup],
+            line
+          ];
         }
       }
 
