@@ -1,5 +1,4 @@
 module.exports = {
-  // commentBegin: /(^\/\/|^\/\*)/,
   defaultGroup: 'Components',
   fileTypes: /(\.js$|\.jsx$|\.ts$|\.tsx$)/,
   groups: {
