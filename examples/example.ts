@@ -34,7 +34,7 @@ export const Asdf = () => {
 
   return (
     <div>
-      Content
+      Stubbed content
     </div>
   );
 };

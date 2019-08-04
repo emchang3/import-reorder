@@ -8,7 +8,7 @@ Expects paths separated by `\n` if there are multiple, relative to the current w
 
 With staged files:
 ```
-git diff --name-only --cached | node import-reorder.js
+git diff --name-only --cached | node_modules/import-reorder/reorder
 ```
 
 The above can be added as a git hook with tools like Husky.

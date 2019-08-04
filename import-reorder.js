@@ -1,45 +1,66 @@
 const fs = require('fs');
 
-const {
-  commentBegin,
-  defaultGroup,
-  fileTypes,
-  groups,
-  ignoreFiles,
-  importPattern,
-  indentSpaces,
-  labelGroups,
-  maxLineLength,
-  membersBegin
-} = require(`${process.cwd()}/reorder.config.js`);
+function ReOrderer(config, cwd) {
+  if (!(this instanceof ReOrderer)) {
+    return new ReOrderer(config, cwd);
+  }
 
-process.stdin.on('data', handleChangelist);
+  this.config = config;
+  this.cwd = cwd;
+
+  this.alphabetizeImports = alphabetizeImports.bind(this);
+  this.alphabetizeMembers = alphabetizeMembers.bind(this);
+  this.fileSkip = fileSkip.bind(this);
+  this.findLastImportIndex = findLastImportIndex.bind(this);
+  this.findLastImportIndex = findLastImportIndex.bind(this);
+  this.generateIndent = generateIndent.bind(this);
+  this.getSections = getSections.bind(this);
+  this.groupImportsAndStatements = groupImportsAndStatements.bind(this);
+  this.handleChangelist = handleChangelist.bind(this);
+  this.processChunk = processChunk.bind(this);
+  this.processFile = processFile.bind(this);
+
+  return this;
+}
+
+function fileSkip(message) {
+  console.log('SKIPPING ->', message);
+}
 
 /**
  * handleChangelist handles a list of files, positioned relatively to the current working directory.
- * 
+ *
  * @param {string} changeList A list of files.
  */
-function handleChangelist(changeList) {
+async function handleChangelist(changeList) {
+  const { fileTypes, ignoreFiles } = this.config;
+
   const filePaths = changeList.toString();
 
-  filePaths.split('\n').forEach(filePath => {
-    if (filePath.match(fileTypes) === null || filePath.match(ignoreFiles) !== null) {
-      return;
-    }
-
-    const path = `${process.cwd()}/${filePath}`;
-
-    fs.stat(path, (error, stats) => {
-      if (error) {
-        console.log('SKIPPING ->', error.message);
+  const fhPromises = filePaths.split('\n').map(filePath => {
+    return new Promise(resolve => {
+      if (
+        filePath.match(fileTypes) === null ||
+        filePath.match(ignoreFiles) !== null
+      ) {
+        resolve(this.fileSkip('Ignored or invalid file type:', filePath));
       }
 
-      if (stats && stats.isFile()) {
-        processFile(path);
-      }
+      const path = `${this.cwd}/${filePath}`;
+
+      fs.stat(path, (error, stats) => {
+        if (error) {
+          resolve(this.fileSkip(error.message));
+        }
+
+        if (stats && stats.isFile()) {
+          resolve(this.processFile(path));
+        }
+      });
     });
   });
+
+  await Promise.all(fhPromises);
 }
 
 /**
@@ -54,7 +75,7 @@ function processFile(filePath) {
 
   rs.on('error', error => console.log(error));
 
-  rs.on('data', chunk => processChunk(chunk, part => parts.push(part)));
+  rs.on('data', chunk => this.processChunk(chunk, part => parts.push(part)));
 
   rs.on('end', () => {
     const ws = fs.createWriteStream(filePath);
@@ -77,14 +98,16 @@ function processFile(filePath) {
 function processChunk(chunk, cb) {
   const part = chunk.toString();
 
-  if (part.match(importPattern) === null) {
+  if (part.match(this.config.importPattern) === null) {
     cb(part);
 
     return;
   }
 
-  const withAlphabetizedMembers = alphabetizeMembers(part);
-  const withAlphabetizedImports = alphabetizeImports(withAlphabetizedMembers);
+  const withAlphabetizedMembers = this.alphabetizeMembers(part);
+  const withAlphabetizedImports = this.alphabetizeImports(
+    withAlphabetizedMembers
+  );
 
   cb(withAlphabetizedImports);
 }
@@ -96,14 +119,16 @@ function processChunk(chunk, cb) {
  * @returns {string} Processed chunk.
  */
 function alphabetizeMembers(chunk) {
-  const { imports, code } = getSections(chunk);
+  const {
+    importPattern,
+    maxLineLength,
+    membersBegin
+  } = this.config;
+
+  const { imports, code } = this.getSections(chunk);
 
   const sortedMembers = imports
     .map(statement => {
-      if (statement.match(commentBegin)) {
-        return statement;
-      }
-
       const singleLineStatement = statement.replace(/\n/g, '');
 
       if (
@@ -115,7 +140,7 @@ function alphabetizeMembers(chunk) {
 
       const tooLong =
         maxLineLength && singleLineStatement.length > maxLineLength;
-      const indent = generateIndent();
+      const indent = this.generateIndent();
 
       // Assumes import members are within first set of braces.
       const breakOnOpeningBrace = statement.split('{');
@@ -132,7 +157,7 @@ function alphabetizeMembers(chunk) {
         .split(',')
         .map(member => member.trim())
         .sort()
-        .map(member => tooLong ? indent + member : member)
+        .map(member => (tooLong ? indent + member : member))
         .join(tooLong ? ',\n' : ', ');
 
       return `${prefix}${members}${postfix}`;
@@ -140,11 +165,18 @@ function alphabetizeMembers(chunk) {
     .join('\n')
     .trim();
 
-  return sortedMembers + code;
+  const joinedCode = code.length > 0 ? `\n${code.trimStart()}` : '';
+
+  return sortedMembers + joinedCode;
 }
 
+/**
+ * generateIndent generates an indent composed of spaces.
+ *
+ * @returns {string} A string with number of spaces specified by config; defaults to 2.
+ */
 function generateIndent() {
-  const spaces = indentSpaces || 2;
+  const spaces = this.config.indentSpaces || 2;
 
   let indent = '';
   for (let i = 0; i < spaces; i++) {
@@ -161,15 +193,17 @@ function generateIndent() {
  * @returns {string} Processed chunk.
  */
 function alphabetizeImports(chunk) {
-  const { imports, code } = getSections(chunk);
-  const { groupedImports, statements } = groupImportsAndStatements(imports);
+  const { imports, code } = this.getSections(chunk);
+  const { groupedImports, statements } = this.groupImportsAndStatements(
+    imports
+  );
 
   const groupedKeys = Object.keys(groupedImports);
 
   let sortedImports = [];
 
   groupedKeys.forEach(groupedKey => {
-    if (labelGroups) {
+    if (this.config.labelGroups) {
       sortedImports.push(`// ${groupedKey}`);
     }
 
@@ -198,7 +232,7 @@ function alphabetizeImports(chunk) {
  */
 function getSections(chunk) {
   const statements = chunk.split(';\n');
-  const lastImportIndex = findLastImportIndex(statements);
+  const lastImportIndex = this.findLastImportIndex(statements);
 
   return {
     imports: statements
@@ -222,7 +256,7 @@ function findLastImportIndex(lines) {
       line
         .split('\n')
         .join('')
-        .match(importPattern) !== null
+        .match(this.config.importPattern) !== null
     ) {
       last = idx;
     }
@@ -235,9 +269,14 @@ function findLastImportIndex(lines) {
  * groupImportsAndStatements separates imports and statements into groups.
  *
  * @param {string[]} imports Lines of code in the import area. Not all may be imports.
- * @returns {{ groupedImports: { [group: string]: string[] }, statements: string[] }} Grouped imports and statements.
+ * @returns {{
+ *  groupedImports: { [group: string]: string[] },
+ *  statements: string[]
+ * }} Grouped imports and statements.
  */
 function groupImportsAndStatements(imports) {
+  const { defaultGroup, groups, importPattern } = this.config;
+
   const groupKeys = Object.keys(groups);
 
   const groupedImports = {};
@@ -294,3 +333,5 @@ function groupImportsAndStatements(imports) {
 
   return { groupedImports, statements };
 }
+
+module.exports = ReOrderer;

@@ -1,5 +1,5 @@
 module.exports = {
-  commentBegin: /(^\/\/|^\/\*)/,
+  // commentBegin: /(^\/\/|^\/\*)/,
   defaultGroup: 'Components',
   fileTypes: /(\.js$|\.jsx$|\.ts$|\.tsx$)/,
   groups: {
@@ -14,7 +14,7 @@ module.exports = {
   ignoreFiles: /config/,
   importPattern: /(import.*from|const.*require)/,
   indentSpaces: 2,
-  maxLineLength: 100,
+  maxLineLength: 80,
   membersBegin: /(import \{|const \{)/,
   labelGroups: false
 };

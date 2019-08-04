@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`a suite of tests for import-reorder a suite of tests for #processChunk should properly alphabetize imports and members of imports 1`] = `
+"import * as React from 'react';
+
+// Another comment.
+const {
+  anotherMember,
+  forLength,
+  member,
+  otherMember
+} = require('why-is-this-a-require');
+import { someFn } from 'some-module';
+
+/**
+ * Some comments
+ * in the middle
+ */
+
+const someCode = 'in the middle';
+
+someCode.split(' ');
+"
+`;
+
+exports[`a suite of tests for import-reorder a suite of tests for #processChunk should properly label groups if configured 1`] = `
+"// Vendor
+import * as React from 'react';
+
+// Components
+// Another comment.
+const {
+  anotherMember,
+  forLength,
+  member,
+  otherMember
+} = require('why-is-this-a-require');
+import { someFn } from 'some-module';
+
+/**
+ * Some comments
+ * in the middle
+ */
+
+const someCode = 'in the middle';
+
+someCode.split(' ');
+"
+`;
