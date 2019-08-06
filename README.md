@@ -52,8 +52,8 @@ becomes:
 import { fnA , fnB, fnC } from 'other-vendor-lib';
 import { fnD , fnE, fnF } from 'some-vendor-lib';
 
-import { ComponentX } from 'some-homegrown-module`;
-import { ModuleY } from 'other-homegrown-module`;
+import { ComponentX } from 'some-homegrown-module';
+import { ModuleY } from 'other-homegrown-module';
 ```
 
 ## Usage (WIP)
