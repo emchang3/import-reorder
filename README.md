@@ -112,7 +112,20 @@ With staged files:
 git diff --name-only --cached | reorder
 ```
 
-The above can be added as a git hook with tools like Husky.
+The above can be added as a git hook with tools like Husky. Example:
+
+```json
+// package.json
+{
+  ...
+  "husky": {
+    "hooks": {
+      "pre-commit": "git diff --name-only --cached | reorder",
+      ...
+    }
+  }
+}
+```
 
 ### Module
 
