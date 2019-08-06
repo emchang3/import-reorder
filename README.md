@@ -41,9 +41,9 @@ Example, grouped by `/vendor/` and `/homegrown/`.
 
 ```javascript
 import { fnD , fnF, fnE } from 'some-vendor-lib';
-import { ComponentX } from 'some-homegrown-module`;
+import { ComponentX } from 'some-homegrown-module';
 import { fnB , fnC, fnA } from 'other-vendor-lib';
-import { ModuleY } from 'other-homegrown-module`;
+import { ModuleY } from 'other-homegrown-module';
 ```
 
 becomes:
