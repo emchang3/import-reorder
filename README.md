@@ -103,13 +103,13 @@ module.exports = {
 The CLI expects paths separated by `\n` if there are multiple, relative to the current working directory.
 
 ```shell
-echo 'fileA.js\nfileB.js\nAnotherDir/fileC.ts' | reorder
+echo 'fileA.js\nfileB.js\nAnotherDir/fileC.ts' | node_modules/import-reorder/reorder.js
 ```
 
 With staged files:
 
 ```shell
-git diff --name-only --cached | reorder
+git diff --name-only --cached | node_modules/import-reorder/reorder.js
 ```
 
 The above can be added as a git hook with tools like Husky. Example:
@@ -120,7 +120,7 @@ The above can be added as a git hook with tools like Husky. Example:
   ...
   "husky": {
     "hooks": {
-      "pre-commit": "git diff --name-only --cached | reorder",
+      "pre-commit": "git diff --name-only --cached | node_modules/import-reorder/reorder.js",
       ...
     }
   }
