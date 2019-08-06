@@ -19,6 +19,7 @@ function ReOrderer(config, cwd) {
   this.handleChangelist = handleChangelist.bind(this);
   this.processChunk = processChunk.bind(this);
   this.processFile = processFile.bind(this);
+  this.processText = processText.bind(this);
 
   return this;
 }
@@ -86,6 +87,20 @@ function processFile(filePath) {
 
     ws.write(parts.join(''));
   });
+}
+
+/**
+ * processText provides a programmatic entrypoint to the functionality of the class.
+ * 
+ * @param {string} chunk A blob of text. Ostensibly has import statements.
+ * @returns {string} A blob of text with sorted import statements.
+ */
+function processText(chunk) {
+  const parts = [];
+
+  this.processChunk(chunk, part => parts.push(part));
+
+  return parts.join('');
 }
 
 /**

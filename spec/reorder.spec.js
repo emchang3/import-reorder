@@ -61,6 +61,7 @@ describe('a suite of tests for import-reorder', () => {
       expect(typeof reOrderer.handleChangelist).toEqual('function');
       expect(typeof reOrderer.processChunk).toEqual('function');
       expect(typeof reOrderer.processFile).toEqual('function');
+      expect(typeof reOrderer.processText).toEqual('function');
     });
 
     it('catches the mistake of not using `new`', () => {
@@ -206,7 +207,13 @@ describe('a suite of tests for import-reorder', () => {
 
       reOrderer.processChunk(chunk, part => parts.push(part));
 
-      expect(parts.join('')).toMatchSnapshot();
+      const joined = parts.join('');
+
+      expect(joined).toMatchSnapshot();
+
+      const result = reOrderer.processText(chunk);
+
+      expect(result).toEqual(joined);
     });
 
     it('should properly label groups if configured', () => {
