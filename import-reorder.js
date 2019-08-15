@@ -171,7 +171,7 @@ function alphabetizeMembers(chunk) {
         .trim()
         .split(',')
         .map(member => member.trim())
-        .sort()
+        .sort((a, b) => sortAlphabetically(this.config, a, b))
         .map(member => (tooLong ? indent + member : member))
         .join(tooLong ? ',\n' : ', ');
 
@@ -180,9 +180,17 @@ function alphabetizeMembers(chunk) {
     .join('\n')
     .trim();
 
-  const joinedCode = code.length > 0 ? `\n${code.trimStart()}` : '';
+  const joinedCode = code.length > 0 ? `\n${code.trimLeft()}` : '';
 
   return sortedMembers + joinedCode;
+}
+
+function sortAlphabetically(config, a, b) {
+  if (config.caseSensitive) {
+    return a.localeCompare(b);
+  }
+
+  return a.toLowerCase().localeCompare(b.toLowerCase());
 }
 
 /**
@@ -224,7 +232,7 @@ function alphabetizeImports(chunk) {
 
     sortedImports = [
       ...sortedImports,
-      ...groupedImports[groupedKey].sort(),
+      ...groupedImports[groupedKey].sort((a, b) => sortAlphabetically(this.config, a, b)),
       ''
     ];
   });

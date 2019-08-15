@@ -1,4 +1,5 @@
 module.exports = {
+  caseSensitive: false,
   defaultGroup: 'Components',
   fileTypes: /(\.js$|\.jsx$|\.ts$|\.tsx$)/,
   groups: {
