@@ -70,6 +70,7 @@ The CLI looks for a file named `reorder.config.js` in the current working direct
 
 ```javascript
 module.exports = {
+  caseSensitive: false,
   defaultGroup: 'Components',
   fileTypes: /(\.js$|\.jsx$|\.ts$|\.tsx$)/,
   groups: {
@@ -90,6 +91,7 @@ module.exports = {
 };
 ```
 
+- `caseSensitive`: Whether to compare case sensitively. Defaults to false if unset (case insensitive).
 - `defaultGroup`: Name of the default group, should you want to label it.
 - `fileTypes`: The filetypes you want to read; regex of the file extensions.
 - `groups`: Defines the groups you want your imports to be in, `groupName: /pattern/`.
