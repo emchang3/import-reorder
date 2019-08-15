@@ -36,7 +36,7 @@ function fileSkip(message) {
 async function handleChangelist(changeList) {
   const { fileTypes, ignoreFiles } = this.config;
 
-  const filePaths = changeList.toString();
+  const filePaths = changeList.toString().trim();
 
   const fhPromises = filePaths.split('\n').map(filePath => {
     return new Promise(resolve => {
