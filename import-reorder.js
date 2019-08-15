@@ -44,7 +44,7 @@ async function handleChangelist(changeList) {
         filePath.match(fileTypes) === null ||
         filePath.match(ignoreFiles) !== null
       ) {
-        resolve(this.fileSkip('Ignored or invalid file type:', filePath));
+        resolve(this.fileSkip(filePath));
       }
 
       const path = `${this.cwd}/${filePath}`;
