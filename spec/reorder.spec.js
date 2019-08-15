@@ -215,15 +215,5 @@ describe('a suite of tests for import-reorder', () => {
 
       expect(result).toEqual(joined);
     });
-
-    it('should properly label groups if configured', () => {
-      reOrderer.config.labelGroups = true;
-
-      const parts = [];
-
-      reOrderer.processChunk(chunk, part => parts.push(part));
-
-      expect(parts.join('')).toMatchSnapshot();
-    });
   });
 });

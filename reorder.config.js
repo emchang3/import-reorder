@@ -15,6 +15,5 @@ module.exports = {
   importPattern: /(import.*from|const.*require)/,
   indentSpaces: 2,
   maxLineLength: 80,
-  membersBegin: /(import \{|const \{)/,
-  labelGroups: false
+  membersBegin: /(import \{|const \{)/
 };

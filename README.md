@@ -86,8 +86,7 @@ module.exports = {
   importPattern: /(import.*from|const.*require)/,
   indentSpaces: 2,
   maxLineLength: 80,
-  membersBegin: /(import \{|const \{)/,
-  labelGroups: false
+  membersBegin: /(import \{|const \{)/
 };
 ```
 
@@ -98,7 +97,6 @@ module.exports = {
 - `ignoreFiles`: The files you want to ignore and not modify (for use cases like dynamic imports).
 - `indentSpaces`: Size of your indent.
 - `maxLineLength`: Length of your lines.
-- `labelGroups`: Whether to each group with a comment of the group name (ie: `// StdLib`).
 
 ### CLI
 

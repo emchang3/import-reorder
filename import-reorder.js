@@ -226,10 +226,6 @@ function alphabetizeImports(chunk) {
   let sortedImports = [];
 
   groupedKeys.forEach(groupedKey => {
-    if (this.config.labelGroups) {
-      sortedImports.push(`// ${groupedKey}`);
-    }
-
     sortedImports = [
       ...sortedImports,
       ...groupedImports[groupedKey].sort((a, b) => sortAlphabetically(this.config, a, b)),
