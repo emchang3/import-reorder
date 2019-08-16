@@ -221,17 +221,29 @@ function alphabetizeImports(chunk) {
     imports
   );
 
-  const groupedKeys = Object.keys(groupedImports);
+  const groupKeys = Reflect.ownKeys(this.config.groups);
 
   let sortedImports = [];
 
-  groupedKeys.forEach(groupedKey => {
+  groupKeys.forEach(groupKey => {
+    if (groupedImports[groupKey]) {
+      sortedImports = [
+        ...sortedImports,
+        ...groupedImports[groupKey].sort((a, b) => sortAlphabetically(this.config, a, b)),
+        ''
+      ];
+    }
+  });
+
+  const defaultGroup = this.config.defaultGroup;
+
+  if (groupedImports[defaultGroup]) {
     sortedImports = [
       ...sortedImports,
-      ...groupedImports[groupedKey].sort((a, b) => sortAlphabetically(this.config, a, b)),
+      ...groupedImports[defaultGroup].sort((a, b) => sortAlphabetically(this.config, a, b)),
       ''
     ];
-  });
+  }
 
   const joinedImports = sortedImports.join('\n').trim();
   const joinedStatements =
