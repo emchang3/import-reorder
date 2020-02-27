@@ -23,5 +23,10 @@
     "url": "https://github.com/emchang3/import-reorder/issues"
   },
   "homepage": "https://github.com/emchang3/import-reorder#readme",
-  "keywords": ["alphabetize", "group", "import", "require"]
+  "keywords": [
+    "alphabetize",
+    "group",
+    "import",
+    "require"
+  ]
 }
