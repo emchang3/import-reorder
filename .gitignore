@@ -5,3 +5,6 @@ node_modules
 # Unit test byproducts
 
 coverage
+
+# OSX FS
+.DS_Store

@@ -45,6 +45,8 @@ async function handleChangelist(changeList) {
         filePath.match(ignoreFiles) !== null
       ) {
         resolve(this.fileSkip(filePath));
+
+        return;
       }
 
       const path = `${this.cwd}/${filePath}`;
@@ -52,6 +54,8 @@ async function handleChangelist(changeList) {
       fs.stat(path, (error, stats) => {
         if (error) {
           resolve(this.fileSkip(error.message));
+
+          return;
         }
 
         if (stats && stats.isFile()) {
