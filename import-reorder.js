@@ -175,6 +175,7 @@ function alphabetizeMembers(chunk) {
         .trim()
         .split(',')
         .map(member => member.trim())
+        .filter(member => member.length > 0)
         .sort((a, b) => sortAlphabetically(this.config, a, b))
         .map(member => (tooLong ? indent + member : member))
         .join(tooLong ? ',\n' : ', ');
