@@ -1,6 +1,6 @@
 {
   "name": "import-reorder",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Re-orders import statements in JavaScript and TypeScript files.",
   "main": "index.js",
   "dependencies": {},
